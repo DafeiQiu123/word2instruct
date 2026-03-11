@@ -1,0 +1,52 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Logs
+*.log
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / editor
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Model outputs
+outputs/
+checkpoints/
+*.pt
+*.pth
+*.bin
+*.safetensors
+
+# Hugging Face / training artifacts
+trainer_state.json
+training_args.bin
+runs/
+
+# Dataset artifacts
+data/train.jsonl
+data/val.jsonl
+data/test.jsonl
+
+# Optional cache folders
+.cache/
+.huggingface/
