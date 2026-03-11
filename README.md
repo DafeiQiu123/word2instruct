@@ -20,42 +20,6 @@ Output:
 
 ---
 
-## Project Structure
-
-word2instruct/
-├── requirements.txt
-├── README.md
-├── generate_dataset.py
-├── data/
-│   ├
-│   ├── train.jsonl
-│   ├── val.jsonl
-│   └── test.jsonl
-└── src/
-    ├── train.py
-    ├── infer.py
-    └── evaluate.py
-
----
-
-## Environment Setup
-
-Install dependencies:
-
-pip install -r requirements.txt
-
-Example requirements:
-
-torch
-transformers
-datasets
-sentencepiece
-accelerate
-numpy
-scikit-learn
-
----
-
 ## Dataset Generation
 
 The dataset is synthetically generated using templates and paraphrases.
@@ -70,7 +34,7 @@ Example:
 
 Generate the dataset:
 
-python data/generate_dataset.py
+python generate_dataset.py
 
 ---
 
@@ -78,7 +42,7 @@ python data/generate_dataset.py
 
 Run training:
 
-python src/train.py --train_file data/train.jsonl --val_file data/val.jsonl --model_name t5-small --output_dir outputs/t5-small-json --epochs 10 --batch_size 8 --lr 3e-4
+python src/train.py --train_file data/train.jsonl --val_file data/val.jsonl --model_name t5-small --output_dir outputs/t5-small-json --epochs 5 --batch_size 8 --lr 3e-4
 
 The script loads the dataset, tokenizes instructions and targets, fine-tunes T5, and evaluates after each epoch.
 
@@ -155,9 +119,9 @@ In the hallway, dim the light.
 **Predicted**
 
 {"action":"close","device":"light","location":"hallway","value":30}
-"""
+
 The model correctly identified the device, location, and value, but predicted the wrong action type. It appears to have confused a brightness adjustment command with an on/off-style control action.
-"""
+
 ### Failure Case 2
 
 **Input**
@@ -171,6 +135,23 @@ For the TV in the kitchen, switch to the kids channel.
 **Predicted**
 
 {"action":"open","device":"tv","location":"kitchen","value":"kids"}
-"""
+
 The model correctly extracted the target device, location, and channel value, but generated the wrong action label. This suggests that the model still occasionally confuses action categories with similar control semantics.
-"""
+
+## Inference Error Analysis
+
+After fine-tuning the model, I tested it using several natural language instructions that were **not present in the training or test datasets**. This experiment was designed to evaluate the model's ability to generalize to new phrasings and unseen instruction patterns. Most of the outputs were correct and remained in valid JSON format. However, the main type of error I observed was still **action label confusion**.
+
+**Input**
+
+Switch the TV in the kitchen over to kids.
+
+**Predicted**
+
+{"action":"set_volume","device":"tv","location":"kitchen","value":"kids"}
+
+**Expected**
+
+{"action":"set_channel","device":"tv","location":"kitchen","value":"kids"}
+
+The unseen-instruction inference results show that the model generalizes well to new phrasing patterns. Most predictions were correct and formatted as valid JSON. Among the tested examples, the only incorrect case involved the `action` field, while the `device`, `location`, and `value` fields were still predicted correctly. This suggests that the action label is the most difficult part of the schema for the model to learn robustly. The error likely comes from semantic overlap between related control actions such as `set_channel`, `set_volume`, and `set_brightness`. 
